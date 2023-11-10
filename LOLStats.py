@@ -3,10 +3,29 @@ from bs4 import BeautifulSoup as bs
 import matplotlib.pyplot as plt
 import requests
 
-def getChampData():
+def start():
+    userChoice = ""
+    while userChoice != "exit":
+        userChoice = input("What would you like to do? \n1. Get champion data\n2. Compare champions\n3. Get all champions\n4. Exit\n: ").lower()
+        if userChoice == "1":
+            role = input("Which role would you like to see? ").lower()
+            for key, value in getChampData(role)[0].items():
+                print(key + ": " + value)
+        elif userChoice == "2":
+            role = input("Which role would you like to see? ").lower()
+            GetChampCompare(role)
+        elif userChoice == "3":
+            GetAllChampList()
+        elif userChoice == "4":
+            exit()
+        else:
+            print("Invalid choice")
+        print("\n")
+
+def getChampData(role):
     # Ask user for which champion they want to see and what role
     champ = input("Which champion would you like to see? ").lower()
-    role = input("Which role would you like to see? ").lower()
+    print("\n")
 
     # Get the data from the website
     url = 'https://u.gg/lol/champions/{champ}/build/{role}'.format(champ=champ, role=role)
@@ -27,11 +46,10 @@ def getChampData():
     for i in range(len(champStatsLabels)):
         champStatsDict[champStatsLabels[i].text] = champStatsValues[i].text
 
-    # Display the stats and their labels
-    for key, value in champStatsDict.items():
-        print(key, value)
+    return champStatsDict, champ
 
 def GetAllChampList():
+    print("\n")
     # Get the data from the website
     url = 'https://u.gg/lol/champions'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -47,60 +65,38 @@ def GetAllChampList():
     for champs in champTableRaw.find_all('div', class_='champion-name'):
         champList.append(champs.text)
 
-    # Return the list of champions
-    return champList
+    # Print the list of champions
+    for i in range(len(champList)):
+        print(champList[i])
 
-def GetChampCompare():
-    # Ask user for which champions they want to compare and what role
-    champ1 = input("Which champion would you like to compare? ").lower()
-    champ2 = input("Which champion would you like to compare? ").lower()
-    role = input("Which role would you like to compare? ").lower()
+def GetChampCompare(role):
+    print("\n")
+    try:
+        champ1 = getChampData(role)
+        champ2 = getChampData(role)
+
+    except AttributeError:
+        print("Seems to be no data")
 
     try:
-        # Get the data from the website
-        url1 = 'https://u.gg/lol/champions/{champ1}/build/{role}'.format(champ1=champ1, role=role)
-        response = requests.get(url1, headers={'User-Agent': 'Mozilla/5.0'})
-        soup = bs(response.text, 'html.parser')
-
-        # Store the champions stats
-        champStats1 = soup.find('div', class_='champion-ranking-stats-normal')
-
-        # Get all the stats labels and values
-        champStatsLabels1 = champStats1.find_all('div', class_='label')
-        champStatsValues1 = champStats1.find_all('div', class_='value')
-
-        # Create a dictionary to store the stats
+        print(champ1[1])
         champStatsDict1 = {}
-
-        # Loop through the labels and values and add them to the dictionary
-        for i in range(len(champStatsLabels1)):
-            champStatsDict1[champStatsLabels1[i].text] = champStatsValues1[i].text
+        dict1 = champ1[0]
+        for key, value in dict1.items():
+            champStatsDict1[key] = value
 
     except AttributeError:
-        print("Seems to be no data for " + champ1 + " in " + role + " role.")
+        print("Seems to be no data for " + champ1[1] + " in " + role + " role.")
 
     try:
-        # Get the data from the website
-        url2 = 'https://u.gg/lol/champions/{champ2}/build/{role}'.format(champ2=champ2, role=role)
-        response = requests.get(url2, headers={'User-Agent': 'Mozilla/5.0'})
-        soup = bs(response.text, 'html.parser')
-
-        # Store the champions stats
-        champStats2 = soup.find('div', class_='champion-ranking-stats-normal')
-
-        # Get all the stats labels and values
-        champStatsLabels2 = champStats2.find_all('div', class_='label')
-        champStatsValues2 = champStats2.find_all('div', class_='value')
-
-        # Create a dictionary to store the stats
+        print(champ2[1])
         champStatsDict2 = {}
-
-        # Loop through the labels and values and add them to the dictionary
-        for i in range(len(champStatsLabels2)):
-            champStatsDict2[champStatsLabels2[i].text] = champStatsValues2[i].text
+        dict2 = champ2[0]
+        for key, value in dict2.items():
+            champStatsDict2[key] = value
 
     except AttributeError:
-        print("Seems to be no data for " + champ2 + " in " + role + " role.")
+        print("Seems to be no data for " + champ2[1] + " in " + role + " role.")
 
     # Ask user which stat they want to compare
     statCompare = input("Which stat would you like to compare? \nTier\nWin Rate\nRank\nPick Rate\nBan Rate\nMatches Played\n: ").lower()
@@ -134,8 +130,6 @@ def GetChampCompare():
     stat2 = stat2.replace("%", "")
     stat2 = stat2.replace(",", "")
 
-    print(stat1, stat2)
-
     if statCompare == "matches played" or statCompare == "win rate" or statCompare == "pick rate" or statCompare == "ban rate" or statCompare == "matches played":
         # Get the max stat and round up
         if float(stat1) > float(stat2):
@@ -145,19 +139,16 @@ def GetChampCompare():
 
         maxStat = round(float(maxStat) + 10)
 
-        graphStatsCompare(stat1, stat2, champ1, champ2, statCompare, maxStat)
+        graphStatsCompare(stat1, stat2, champ1[1], champ2[1], statCompare, maxStat)
 
     else:
-        print(champ1 + ": " + stat1)
-        print(champ2 + ": " + stat2)
+        print(champ1[1] + ": " + stat1)
+        print(champ2[1] + ": " + stat2)
 
 def graphStatsCompare(stat1, stat2, champ1, champ2, statCompare, maxStat):
     # Create a dataframe to store the data
     df = pd.DataFrame({'Champion': [champ1, champ2], 'Stat': [float(stat1), float(stat2)]})
     df.set_index('Champion', inplace=True)
-
-    # Display the dataframe
-    print(df)
 
     # Create a bar graph to display the data
     plt.bar(df.index, df['Stat'])
@@ -167,5 +158,4 @@ def graphStatsCompare(stat1, stat2, champ1, champ2, statCompare, maxStat):
     plt.ylim(0, float(maxStat))
     plt.show()
 
-'''getChampData()'''
-GetChampCompare()
+start()
