@@ -79,7 +79,6 @@ def GetChampCompare(role):
         print("Seems to be no data")
 
     try:
-        print(champ1[1])
         champStatsDict1 = {}
         dict1 = champ1[0]
         for key, value in dict1.items():
@@ -89,7 +88,6 @@ def GetChampCompare(role):
         print("Seems to be no data for " + champ1[1] + " in " + role + " role.")
 
     try:
-        print(champ2[1])
         champStatsDict2 = {}
         dict2 = champ2[0]
         for key, value in dict2.items():
@@ -137,7 +135,24 @@ def GetChampCompare(role):
         else:
             maxStat = float(stat2)
 
-        maxStat = round(float(maxStat) + 10)
+        maxStatAdd = 0
+
+        print(maxStat)
+
+        if maxStat < 10:
+            maxStatAdd = 10
+        elif maxStat > 10 and maxStat < 100:
+            maxStatAdd = 100
+        elif maxStat > 100 and maxStat < 1000:
+            maxStatAdd = 1000
+        elif maxStat > 1000 and maxStat < 10000:
+            maxStatAdd = 10000
+        elif maxStat > 10000 and maxStat < 100000:
+            maxStatAdd = 100000
+            
+        print(maxStatAdd)
+
+        maxStat = round(float(maxStat) + maxStatAdd)
 
         graphStatsCompare(stat1, stat2, champ1[1], champ2[1], statCompare, maxStat)
 
