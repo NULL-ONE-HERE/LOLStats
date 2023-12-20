@@ -5,27 +5,53 @@ import requests
 
 def start():
     userChoice = ""
-    while userChoice != "exit":
-        userChoice = input("What would you like to do? \n1. Get champion data\n2. Compare champions\n3. Get all champions\n4. Exit\n: ").lower()
+    while True:
+        userChoice = input("What would you like to do? (Only put one of the number listed below) \n1. Get champion data\n2. Compare champions\n3. Get all champions\n4. Exit\n>> ")
         if userChoice == "1":
-            role = input("Which role would you like to see? ").lower()
-            for key, value in getChampData(role)[0].items():
+            role = input("Which role would you like to see? ")
+            # Get the data
+            champData = getChampData(role)
+            for key, value in champData[0].items():
                 print(key + ": " + value)
+            # Ask user if they want to see counters
+            userChoice = input("Would you like to see counters? (y/n) ").lower()
+            if userChoice == "y":
+                # Get the counters
+                bestChampList, worstChampList = counterToChamp(champData[1])
+                print("\nBest champions to vs: ")
+                for champ in bestChampList:
+                    print(champ)
+                print("\nWorst champions to vs: ")
+                for champ in worstChampList:
+                    print(champ)
+            elif userChoice == "n":
+                pass
+            else:
+                print("Invalid choice")
         elif userChoice == "2":
-            role = input("Which role would you like to see? ").lower()
+            role = input("Which role would you like to see? ")
             GetChampCompare(role)
         elif userChoice == "3":
-            GetAllChampList()
+            for champ in GetAllChampList():
+                print(champ)
         elif userChoice == "4":
+            print("Goodbye")
             exit()
         else:
             print("Invalid choice")
         print("\n")
 
 def getChampData(role):
-    # Ask user for which champion they want to see and what role
-    champ = input("Which champion would you like to see? ").lower()
-    print("\n")
+    # Fetch the valid champion names
+    champList = GetAllChampList()
+
+    while True:
+        # Keep asking for a champion until a valid one is given
+        champ = input("Which champion would you like to see? ")
+        if champ in champList:
+            break
+        else:
+            print("Invalid champion")
 
     # Get the data from the website
     url = 'https://u.gg/lol/champions/{champ}/build/{role}'.format(champ=champ, role=role)
@@ -48,6 +74,37 @@ def getChampData(role):
 
     return champStatsDict, champ
 
+def counterToChamp(champ):
+    # Get the data from the website
+    url = 'https://u.gg/lol/champions/{champ}/counter'.format(champ=champ)
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+    soup = bs(response.text, 'html.parser')
+
+    # Get the best champions to vs
+    bestChampTableRaw = soup.find('div', class_='counters-list best-win-rate')
+
+    # Get the worst champions to vs
+    worstChampTableRaw2 = soup.find('div', class_='counters-list worst-win-rate')
+
+    # Create a list to store the champions
+    # Best Champs
+    bestChampList = []
+    # Worst Champs
+    worstChampList = []
+
+    # Loop through the champions and add them to the list
+    # Best Champs
+    for champs in bestChampTableRaw.find_all('div', class_='champion-name'):
+        bestChampList.append(champs.text)
+
+    # Worst Champs
+    for champs in worstChampTableRaw2.find_all('div', class_='champion-name'):
+        worstChampList.append(champs.text)
+
+    # Return the list
+    # return champList
+    return bestChampList, worstChampList
+
 def GetAllChampList():
     print("\n")
     # Get the data from the website
@@ -65,9 +122,8 @@ def GetAllChampList():
     for champs in champTableRaw.find_all('div', class_='champion-name'):
         champList.append(champs.text)
 
-    # Print the list of champions
-    for i in range(len(champList)):
-        print(champList[i])
+    # Return the list
+    return champList
 
 def GetChampCompare(role):
     print("\n")
