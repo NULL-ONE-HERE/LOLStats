@@ -3,17 +3,8 @@ from bs4 import BeautifulSoup as bs
 import matplotlib.pyplot as plt
 import requests
 
-def start():
-    userChoice = ""
-    while True:
-        userChoice = input("What would you like to do? (Only put one of the number listed below) \n1. Get champion data\n2. Compare champions\n3. Get all champions\n4. Exit\n>> ")
-        if userChoice == "1":
-            role = input("Which role would you like to see? ")
-            # Get the data
-            champData = getChampData(role)
-            for key, value in champData[0].items():
-                print(key + ": " + value)
-            # Ask user if they want to see counters
+
+'''# Ask user if they want to see counters
             userChoice = input("Would you like to see counters? (y/n) ").lower()
             if userChoice == "y":
                 # Get the counters
@@ -27,31 +18,19 @@ def start():
             elif userChoice == "n":
                 pass
             else:
-                print("Invalid choice")
-        elif userChoice == "2":
-            role = input("Which role would you like to see? ")
-            GetChampCompare(role)
-        elif userChoice == "3":
-            for champ in GetAllChampList():
-                print(champ)
-        elif userChoice == "4":
-            print("Goodbye")
-            exit()
-        else:
-            print("Invalid choice")
-        print("\n")
+                print("Invalid choice")'''
 
-def getChampData(role):
+
+def getChampData(role, champ):
     # Fetch the valid champion names
     champList = GetAllChampList()
 
     while True:
         # Keep asking for a champion until a valid one is given
-        champ = input("Which champion would you like to see? ")
         if champ in champList:
             break
         else:
-            print("Invalid champion")
+            return {champ: "Invalid champion"}
 
     # Get the data from the website
     url = 'https://u.gg/lol/champions/{champ}/build/{role}'.format(champ=champ, role=role)
@@ -72,7 +51,7 @@ def getChampData(role):
     for i in range(len(champStatsLabels)):
         champStatsDict[champStatsLabels[i].text] = champStatsValues[i].text
 
-    return champStatsDict, champ
+    return champStatsDict
 
 def counterToChamp(champ):
     # Get the data from the website
@@ -106,7 +85,6 @@ def counterToChamp(champ):
     return bestChampList, worstChampList
 
 def GetAllChampList():
-    print("\n")
     # Get the data from the website
     url = 'https://u.gg/lol/champions'
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -125,32 +103,31 @@ def GetAllChampList():
     # Return the list
     return champList
 
-def GetChampCompare(role):
-    print("\n")
+def CreateGraphCompare(role, champ1, champ2):
     try:
-        champ1 = getChampData(role)
-        champ2 = getChampData(role)
+        champ1data = getChampData(role, champ1)
+        champ2data = getChampData(role, champ2)
 
     except AttributeError:
         print("Seems to be no data")
 
     try:
         champStatsDict1 = {}
-        dict1 = champ1[0]
+        dict1 = champ1data[0]
         for key, value in dict1.items():
             champStatsDict1[key] = value
 
     except AttributeError:
-        print("Seems to be no data for " + champ1[1] + " in " + role + " role.")
+        print("Seems to be no data for " + champ1data[1] + " in " + role + " role.")
 
     try:
         champStatsDict2 = {}
-        dict2 = champ2[0]
+        dict2 = champ2data[0]
         for key, value in dict2.items():
             champStatsDict2[key] = value
 
     except AttributeError:
-        print("Seems to be no data for " + champ2[1] + " in " + role + " role.")
+        print("Seems to be no data for " + champ2data[1] + " in " + role + " role.")
 
     # Ask user which stat they want to compare
     statCompare = input("Which stat would you like to compare? \nTier\nWin Rate\nRank\nPick Rate\nBan Rate\nMatches Played\n: ").lower()
@@ -228,5 +205,3 @@ def graphStatsCompare(stat1, stat2, champ1, champ2, statCompare, maxStat):
     plt.ylabel(statCompare)
     plt.ylim(0, float(maxStat))
     plt.show()
-
-start()
