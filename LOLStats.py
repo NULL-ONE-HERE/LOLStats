@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 import matplotlib.pyplot as plt
 import requests
 
+# The section below is to ask the user if they want the champs that might counter the champ they have requested. Not sure where to put this yet
 
 '''# Ask user if they want to see counters
             userChoice = input("Would you like to see counters? (y/n) ").lower()
